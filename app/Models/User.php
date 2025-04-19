@@ -2,47 +2,105 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use Notifiable;
+
+    protected $table        = 'users';
+    protected $primaryKey   = 'use_id';
+    public    $incrementing = true;
+    public    $timestamps   = false;      // usamos datas custom
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Atributos em massa.
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'use_cpf',
+        'use_email',
+        'use_senha',
+        'use_perfil',
+        'use_data_criacao',
+        'use_data_anonimizacao',
+        'fk_gestor_id',
+        'use_aprovado',          // <- novo campo
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
+     * Casts de tipo.
      */
-    protected $hidden = [
-        'password',
-        'remember_token',
+    protected $casts = [
+        'use_aprovado' => 'boolean',
+        'use_data_criacao'     => 'date',
+        'use_data_anonimizacao'=> 'date',
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Coluna que contém o hash da senha.
      */
-    protected function casts(): array
+    public function getAuthPassword()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->use_senha;
+    }
+
+    /**
+     * Para o Password Broker usar `use_email`.
+     */
+    public function getEmailForPasswordReset(): string
+    {
+        return $this->use_email;
+    }
+
+    /**
+     * Define o e‑mail de destino para todas as notificações.
+     */
+    public function routeNotificationForMail($notification)
+    {
+        return $this->use_email;
+    }
+
+    /**
+     * Envia notificação de verificação de e‑mail.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmail);
+    }
+
+    /* -----------------------------------------------------------------
+     |  RELACIONAMENTOS
+     |-----------------------------------------------------------------*/
+
+    public function gestor()
+    {
+        return $this->belongsTo(self::class, 'fk_gestor_id', 'use_id');
+    }
+
+    public function agentes()
+    {
+        return $this->hasMany(self::class, 'fk_gestor_id', 'use_id');
+    }
+
+    /* -----------------------------------------------------------------
+     |  HELPERS
+     |-----------------------------------------------------------------*/
+
+    public function isAgente(): bool
+    {
+        return $this->use_perfil === 'agente';
+    }
+
+    public function isGestor(): bool
+    {
+        return $this->use_perfil === 'gestor';
+    }
+
+    public function isAprovado(): bool
+    {
+        return (bool) $this->use_aprovado;
     }
 }
