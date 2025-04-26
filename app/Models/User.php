@@ -11,32 +11,44 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
 
+    // Tabela e PK com prefixo “use_”
     protected $table        = 'users';
     protected $primaryKey   = 'use_id';
     public    $incrementing = true;
-    public    $timestamps   = false;      // usamos datas custom
+    public    $timestamps   = false; // usamos datas customizadas
 
     /**
      * Atributos em massa.
      */
     protected $fillable = [
+        'use_nome',           // Nome completo
         'use_cpf',
         'use_email',
         'use_senha',
         'use_perfil',
+        'use_aprovado',
         'use_data_criacao',
         'use_data_anonimizacao',
         'fk_gestor_id',
-        'use_aprovado',          // <- novo campo
+    ];
+
+    /**
+     * Campos a ocultar em JSON/respostas.
+     */
+    protected $hidden = [
+        'use_senha',           // senha hash
+        'remember_token',      // sem prefixo
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
      * Casts de tipo.
      */
     protected $casts = [
-        'use_aprovado' => 'boolean',
-        'use_data_criacao'     => 'date',
-        'use_data_anonimizacao'=> 'date',
+        'use_aprovado'          => 'boolean',
+        'use_data_criacao'      => 'datetime',
+        'use_data_anonimizacao' => 'date',
     ];
 
     /**
@@ -56,7 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Define o e‑mail de destino para todas as notificações.
+     * Define o e-mail de destino para todas as notificações.
      */
     public function routeNotificationForMail($notification)
     {
@@ -64,7 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Envia notificação de verificação de e‑mail.
+     * Envia notificação de verificação de e-mail.
      */
     public function sendEmailVerificationNotification(): void
     {
@@ -75,11 +87,17 @@ class User extends Authenticatable implements MustVerifyEmail
      |  RELACIONAMENTOS
      |-----------------------------------------------------------------*/
 
+    /**
+     * Usuário gestor (auto-relacionamento).
+     */
     public function gestor()
     {
         return $this->belongsTo(self::class, 'fk_gestor_id', 'use_id');
     }
 
+    /**
+     * Agentes vinculados a este gestor.
+     */
     public function agentes()
     {
         return $this->hasMany(self::class, 'fk_gestor_id', 'use_id');
@@ -102,5 +120,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAprovado(): bool
     {
         return (bool) $this->use_aprovado;
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            abort(403, 'Operação proibida: usuários devem ser anonimizados, não excluídos.');
+        });
     }
 }

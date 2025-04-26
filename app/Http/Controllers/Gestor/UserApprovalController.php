@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Gestor;
 
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 class UserApprovalController extends Controller
 {
@@ -14,9 +15,9 @@ class UserApprovalController extends Controller
      */
     public function index(): View
     {
-        $pendentes = User::where('use_aprovado', false)->get();
+        $pendentes = User::where('use_aprovado', false)->orderBy('use_data_criacao')->get();
 
-        return view('gestor.pendentes', compact('pendentes'));
+        return view('gestor.users.pendentes', compact('pendentes'));
     }
 
     /**

@@ -5,13 +5,15 @@
     <form method="POST" action="{{ route('login') }}" class="max-w-md mx-auto mt-8">
         @csrf
 
-        {{-- CPF ou E‑mail --}}
+        {{-- CPF ou E-mail --}}
         <div class="mb-5">
-            <x-input-label for="login" :value="__('CPF ou E‑mail')" />
-            <x-text-input id="login" name="login" type="text"
-                          :value="old('login')" required autofocus
-                          class="block w-full mt-1
-                                 @error('login') border-red-500 @enderror" />
+            <x-input-label for="login" :value="__('CPF ou E-mail')" />
+            <x-text-input id="login"
+                        name="login"
+                        type="text"
+                        :value="old('login')"
+                        required autofocus
+                        class="block w-full mt-1 @error('login') border-red-500 @enderror" />
             <x-input-error :messages="$errors->get('login')" />
         </div>
 
@@ -83,4 +85,37 @@
             Registre‑se
         </a>
     </p>
+
+    {{-- carregar jQuery e Mask Plugin --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+    $(function(){
+      var $login = $('#login');
+
+      // sempre permita só números ou letras conforme o padrão
+      $login.on('input', function(){
+        var val = $login.val();
+
+        // se começar com dígito, aplica máscara de CPF
+        if (/^[0-9]/.test(val)) {
+          // se ainda não tiver máscara, ativa
+          if (!$login.data('mask-applied')) {
+            $login.mask('000.000.000-00');
+            $login.data('mask-applied', true);
+          }
+        } else {
+          // se não começa com dígito e máscara está ativa, remova
+          if ($login.data('mask-applied')) {
+            $login.unmask();
+            $login.data('mask-applied', false);
+          }
+        }
+      });
+
+      // opcional: ao focar já dispara a verificação
+      $login.trigger('input');
+    });
+    </script>
+    
 </x-guest-layout>

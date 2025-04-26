@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -13,7 +15,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+        User::class => UserPolicy::class,
     ];
 
     /**
@@ -31,13 +33,9 @@ class AuthServiceProvider extends ServiceProvider
         */
 
         // Apenas usuários com perfil 'gestor'
-        Gate::define('isGestor', function ($user) {
-            return $user->isGestor();
-        });
+        Gate::define('isGestor', fn(User $user) => $user->isGestor());
 
         // Apenas usuários aprovados
-        Gate::define('isAprovado', function ($user) {
-            return $user->isAprovado();
-        });
+        Gate::define('isAprovado', fn(User $user) => $user->isAprovado());
     }
 }

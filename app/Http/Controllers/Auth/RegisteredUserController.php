@@ -25,15 +25,17 @@ class RegisteredUserController extends Controller
      * Processa o registro de um novo usuário.
      */
     public function store(Request $request): RedirectResponse
-    {
+    { 
         /* -----------------------------------------------------------------
          |  1. Validação
          |-----------------------------------------------------------------*/
         $request->validate([
+            'nome'     => ['required','string','max:255'],
             'cpf'      => ['required','string','max:14','unique:users,use_cpf'],
-            'email'    => ['required','string','email','max:255','unique:users,use_email'],
+            'email'    => ['required','string','email:rfc,dns','max:255','unique:users,use_email'],
             'password' => ['required','confirmed', Rules\Password::defaults()],
         ], [
+            'nome.required'   => 'O nome é obrigatório',
             'cpf.required'   => 'O CPF é obrigatório',
             'cpf.unique'     => 'Este CPF já está cadastrado',
             'email.required' => 'O e‑mail é obrigatório',
@@ -48,6 +50,7 @@ class RegisteredUserController extends Controller
          |  2. Criação – usuário entra como NÃO aprovado
          |-----------------------------------------------------------------*/
         $user = User::create([
+            'use_nome'         => $request->input('nome'),
             'use_cpf'          => $request->input('cpf'),
             'use_email'        => $request->input('email'),
             'use_senha'        => Hash::make($request->input('password')),
@@ -56,7 +59,7 @@ class RegisteredUserController extends Controller
             'use_data_criacao' => now(),
         ]);
 
-        event(new Registered($user));
+        // event(new Registered($user));
 
         /* -----------------------------------------------------------------
          |  3. Redireciona para login com aviso

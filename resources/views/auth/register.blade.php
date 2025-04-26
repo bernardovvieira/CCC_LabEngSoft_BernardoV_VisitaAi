@@ -4,21 +4,38 @@
     <form method="POST" action="{{ route('register') }}" class="max-w-md mx-auto mt-8">
         @csrf
 
+        {{-- Nome --}}
+        <div class="mb-4">
+            <x-input-label for="nome" :value="__('Nome')" />
+            <x-text-input id="nome"
+                        class="block mt-1 w-full @error('cpf') border-red-500 @enderror"
+                        type="text"
+                        name="nome"
+                        :value="old('nome')"
+                        required autofocus />
+            <x-input-error :messages="$errors->get('nome')" class="mt-2" />
+        </div>
+
         {{-- CPF --}}
         <div class="mb-4">
             <x-input-label for="cpf" :value="__('CPF')" />
-            <x-text-input id="cpf" name="cpf" type="text"
-                          :value="old('cpf')" required
-                          class="block w-full mt-1
-                                 @error('cpf') border-red-500 @enderror" />
-            <x-input-error :messages="$errors->get('cpf')" />
+            <x-text-input id="cpf"
+                        class="block mt-1 w-full @error('use_cpf') border-red-500 @enderror"
+                        type="text"
+                        name="cpf"
+                        :value="old('cpf')"
+                        required
+                        inputmode="numeric"
+                        pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+                        title="Formato: XXX.XXX.XXX-XX" />
+            <x-input-error :messages="$errors->get('cpf')" class="mt-2" />
         </div>
 
         {{-- E‑mail --}}
         <div class="mb-4">
             <x-input-label for="email" :value="__('E‑mail')" />
             <x-text-input id="email" name="email" type="email"
-                          :value="old('email')" required
+                          :value="old('email')" required autocapitalize="off"
                           class="block w-full mt-1
                                  @error('email') border-red-500 @enderror" />
             <x-input-error :messages="$errors->get('email')" />
@@ -53,4 +70,15 @@
             Faça login
         </a>
     </p>
+
+    <!-- Máscara CPF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        // o código de máscara precisa rodar após o carregamento do input
+        $(function(){
+            $('#cpf').mask('000.000.000-00');
+        });
+    </script>
+
 </x-guest-layout>
